@@ -22,7 +22,7 @@ A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Goog
 
 📋 Easy Installation Instructions
 Here's the correct way to set it up with Claude- maybe, doesn't throw an error, can't test for a few hours:
-Just use this config in Claude Desktop:
+Just edit in your paths and use this config in Claude Desktop:
 
 ```json
 {
