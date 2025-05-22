@@ -53,7 +53,7 @@ class TestMCPClient:
         """Test model selection functionality."""
         client = MCPClient(model="gemini-2.5-pro-preview-03-25")
         assert client.model == "gemini-2.5-pro-preview-03-25"
-        
+
         # Test model change
         client.set_model("gemini-2.0-flash")
         assert client.model == "gemini-2.0-flash"
@@ -70,7 +70,7 @@ class TestMCPClient:
     async def test_connect_to_nonexistent_server(self):
         """Test connecting to a non-existent server."""
         client = MCPClient()
-        
+
         with pytest.raises(ValueError, match="Server script not found"):
             await client.connect_to_server("nonexistent.py")
 
@@ -78,7 +78,7 @@ class TestMCPClient:
     async def test_connect_to_invalid_server_type(self):
         """Test connecting to an invalid server type."""
         client = MCPClient()
-        
+
         with patch('pathlib.Path.exists', return_value=True):
             with pytest.raises(ValueError, match="Unsupported server script type"):
                 await client.connect_to_server("server.txt")
@@ -87,7 +87,7 @@ class TestMCPClient:
     async def test_get_response_not_connected(self):
         """Test getting response when not connected."""
         client = MCPClient()
-        
+
         with pytest.raises(MCPClientError, match="Not connected to server"):
             await client.get_response("test input")
 
@@ -98,7 +98,7 @@ class TestMCPClient:
         client._connected = True
         client.session = AsyncMock()
         client._server_info = {"tools": [{"name": "test_tool", "description": "Test tool"}]}
-        
+
         response = await client._basic_response("what tools are available?")
         assert "test_tool" in response
         assert "Test tool" in response
@@ -109,7 +109,7 @@ class TestMCPClient:
         client = MCPClient(model="gemini-2.0-flash")
         client._connected = True
         client.session = AsyncMock()
-        
+
         response = await client._basic_response("what model are you using?")
         assert "gemini-2.0-flash" in response
         assert "Available models:" in response
@@ -120,7 +120,7 @@ class TestMCPClient:
         client = MCPClient()
         client._connected = True
         client.exit_stack = AsyncMock()
-        
+
         await client.close()
         assert not client._connected
         assert client.session is None
