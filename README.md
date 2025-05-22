@@ -24,7 +24,7 @@ A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Goog
 ## Installation
 
 📋 Easy Installation Instructions
-Here's the correct way to set it up with Claude- maybe, You may beed to install this if not working properly:
+Here's the correct way to set it up with Claude- maybe, You may need to install this if not working properly:
 - cd /gemini-mcp-client && uv add google-generativeai
 
 Doesn't throw an error and works great for chat, not sure about Gemini MCP use.
