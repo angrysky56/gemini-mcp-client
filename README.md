@@ -54,7 +54,7 @@ Just use this config in Claude Desktop:
 }
 ```
 
-## Installation outside of Claude if someone wants to try it and maybe develop a Standalone UI for Gemeni with MCP Tools!:
+## Installation outside of Claude if someone wants to try it and maybe develop a Standalone UI for Gemini with MCP Tools!:
 - possibly hallucinatory
 
 This project uses `uv` for dependency management. Make sure you have `uv` installed.
