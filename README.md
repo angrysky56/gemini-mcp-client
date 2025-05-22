@@ -4,7 +4,8 @@ Credit to and started from- [medium.com/@fruitful2007/building-an-mcp-client-101
 
 [pypi.org/project/gemini-tool-agent](https://pypi.org/project/gemini-tool-agent/)
 
-A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling. Working with Claude Desktop currently.
+A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling.
+- Tested working nicely with Claude Desktop as an MCP Server currently.
 
 ### Based on untested AI gen code by a non-coder use at own risk.
 
