@@ -4,14 +4,14 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 import asyncio
 
-from gemini_mcp_client.client import MCPClient, MCPClientError, ServerConnectionError
+from mcp_gemini_client.client import MCPClient, MCPClientError, ServerConnectionError
 
 
 @pytest.fixture
 def mock_gemini_agent():
     """Mock Gemini Agent for testing."""
-    with patch('gemini_mcp_client.client.GEMINI_AVAILABLE', True):
-        with patch('gemini_mcp_client.client.Agent') as mock_agent_class:
+    with patch('mcp_gemini_client.client.GEMINI_AVAILABLE', True):
+        with patch('mcp_gemini_client.client.Agent') as mock_agent_class:
             mock_agent = MagicMock()
             mock_agent.tools = []
             mock_agent.history = []
@@ -48,6 +48,23 @@ class TestMCPClient:
         client = MCPClient(api_key="test-key")
         assert client.session is None
         assert not client._connected
+
+    def test_model_selection(self):
+        """Test model selection functionality."""
+        client = MCPClient(model="gemini-2.5-pro-preview-03-25")
+        assert client.model == "gemini-2.5-pro-preview-03-25"
+        
+        # Test model change
+        client.set_model("gemini-2.0-flash")
+        assert client.model == "gemini-2.0-flash"
+
+    def test_available_models(self):
+        """Test getting available models."""
+        client = MCPClient()
+        models = client.get_available_models()
+        assert isinstance(models, list)
+        assert len(models) > 0
+        assert "gemini-2.0-flash" in models
 
     @pytest.mark.asyncio
     async def test_connect_to_nonexistent_server(self):
@@ -87,6 +104,17 @@ class TestMCPClient:
         assert "Test tool" in response
 
     @pytest.mark.asyncio
+    async def test_basic_response_model_info(self):
+        """Test basic response for model information."""
+        client = MCPClient(model="gemini-2.0-flash")
+        client._connected = True
+        client.session = AsyncMock()
+        
+        response = await client._basic_response("what model are you using?")
+        assert "gemini-2.0-flash" in response
+        assert "Available models:" in response
+
+    @pytest.mark.asyncio
     async def test_close_client(self):
         """Test closing the client."""
         client = MCPClient()
@@ -100,7 +128,8 @@ class TestMCPClient:
 
     def test_repr(self):
         """Test string representation."""
-        client = MCPClient()
+        client = MCPClient(model="gemini-2.0-flash")
         repr_str = repr(client)
         assert "MCPClient" in repr_str
         assert "connected=False" in repr_str
+        assert "model=gemini-2.0-flash" in repr_str

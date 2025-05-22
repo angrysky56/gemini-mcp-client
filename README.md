@@ -1,5 +1,4 @@
-# Gemini MCP Client
-- AI generated, untested as of now, try at own risk.
+# MCP Gemini Client
 
 A powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling.
 
@@ -8,6 +7,7 @@ A powerful MCP (Model Context Protocol) client that uses Google's Gemini AI mode
 - **Multiple Gemini Models**: Support for various Gemini models (2.0-flash, 2.5-pro, 1.5-pro, etc.)
 - **Flexible Package Support**: Works with gemini-tool-agent, google-generativeai, or google-genai packages
 - **Runtime Model Switching**: Change models during conversation
+- **Server Configuration Management**: Store and manage MCP server configurations
 - **Intelligent Tool Usage**: AI-powered tool discovery and execution
 - **Async/await Support**: Efficient concurrent operations
 - **Comprehensive Error Handling**: Robust error recovery and logging
@@ -23,8 +23,68 @@ This project uses `uv` for dependency management. Make sure you have `uv` instal
 # Create and activate virtual environment
 uv venv --python 3.12 --seed
 source .venv/bin/activate
+```
+
+📋 Installation Instructions
+You don't need to run uv add . from within the project directory. Here's the correct way to set it up:
+Option 1: Use the Echo Server Directly (Recommended)
+
+```json
+{
+  "mcpServers": {
+    "echo-server": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/ty/Repositories/ai_workspace/gemini-mcp-client",
+        "run",
+        "python",
+        "examples/echo_server.py"
+      ]
+    }
+  }
+}
+```
+Option 2: If You Want to Use the MCP Client
+First install the dependencies:
+
+```bash
+cd /gemini-mcp-client
 
 # Install base dependencies
+uv sync
+
+# Install a Gemini package
+uv add google-generativeai
+
+# Set up environment
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+```
+Then use this config:
+```json
+{
+  "mcpServers": {
+    "mcp-gemini-client": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/ty/Repositories/ai_workspace/gemini-mcp-client",
+        "run",
+        "mcp-gemini-client",
+        "chat",
+        "examples/echo_server.py"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "your_actual_api_key_here"
+      }
+    }
+  }
+}
+```
+
+```bash
+# Install base dependencies- this is wrong
 uv add .
 
 # Install a Gemini package (choose one or more):
@@ -73,26 +133,63 @@ The client supports multiple Gemini models:
 
 ```bash
 # Start chat with default model
-gemini-mcp-client chat path/to/server.py
+mcp-gemini-client chat path/to/server.py
 
 # Start chat with specific model
-gemini-mcp-client chat server.py --model gemini-2.5-pro-preview-03-25
+mcp-gemini-client chat server.py --model gemini-2.5-pro-preview-03-25
 
 # Get server information
-gemini-mcp-client info server.py
+mcp-gemini-client info server.py
 
 # List available models
-gemini-mcp-client models
+mcp-gemini-client models
 
 # Set logging level
-gemini-mcp-client chat server.py --log-level DEBUG
+mcp-gemini-client chat server.py --log-level DEBUG
+```
+
+### Server Management
+
+```bash
+# List configured servers
+mcp-gemini-client servers list
+
+# Add new server interactively
+mcp-gemini-client servers add
+
+# Connect to configured server by name
+mcp-gemini-client chat echo-server
+
+# Enable/disable servers
+mcp-gemini-client servers enable my-server
+mcp-gemini-client servers disable my-server
+
+# Export for Claude Desktop
+mcp-gemini-client servers export claude_config.json
+
+# Import from Claude Desktop config
+mcp-gemini-client servers import existing_config.json
+```
+
+### Configuration Management
+
+```bash
+# Show current configuration
+mcp-gemini-client config show
+
+# Set default model
+mcp-gemini-client config set default_model gemini-2.5-pro-preview-03-25
+
+# Set other settings
+mcp-gemini-client config set log_level DEBUG
+mcp-gemini-client config set connection_timeout 60.0
 ```
 
 ### Programmatic Usage
 
 ```python
 import asyncio
-from gemini_mcp_client import MCPClient
+from mcp_gemini_client import MCPClient
 
 async def main():
     # Initialize with specific model
@@ -139,99 +236,78 @@ During an interactive chat session, you can change models:
 🤖 Assistant: I'm currently using gemini-2.5-pro-preview-03-25...
 ```
 
-## Features
+## Server Configuration
 
-### AI-Powered Conversations
-- **Intelligent Tool Selection**: AI determines when and which tools to use
-- **Context-Aware Responses**: Maintains conversation history for better responses
-- **Natural Language Interaction**: Understands user intent and responds appropriately
+### Configuration Files
 
-### Model Management
-- **Multiple Model Support**: Works with different Gemini model versions
-- **Runtime Switching**: Change models without restarting the session
-- **Package Flexibility**: Supports multiple Gemini Python packages
+- `config/servers.json` - MCP server configurations
+- `config/client.json` - Client settings (model, timeouts, etc.)
 
-### Connection Management
-- **Async/await Support**: Efficient handling of multiple operations
-- **Proper Resource Cleanup**: Automatic cleanup of connections and resources
-- **Error Recovery**: Robust error handling and recovery mechanisms
-- **Multi-server Support**: Connect to different MCP servers
+### Example Server Configuration
 
-### Tool Integration
-- **Automatic Discovery**: Finds and catalogs available tools from servers
-- **Intelligent Parameter Mapping**: AI determines appropriate tool parameters
-- **Error Handling**: Graceful handling of tool execution failures
-- **Direct Tool Access**: Call tools directly without AI mediation
-
-## Server Compatibility
-
-The client works with any MCP server that follows the standard protocol:
-
-- **Python servers**: Using `mcp.server` or `FastMCP`
-- **JavaScript servers**: Using `@modelcontextprotocol/sdk`
-- **Other implementations**: Any server implementing MCP protocol
-
-## Package Dependencies
-
-The client supports multiple Gemini packages and will use the first available:
-
-1. **gemini-tool-agent**: Advanced tool-calling capabilities
-2. **google-generativeai**: Official Google SDK (legacy)
-3. **google-genai**: New official Google SDK
-
-Install at least one of these packages for full functionality.
-
-## Error Handling
-
-The client includes comprehensive error handling:
-
-- **Connection Errors**: Automatic retry and graceful failure handling
-- **Tool Execution Errors**: Clear error messages and recovery
-- **Network Issues**: Timeout handling and reconnection
-- **Resource Errors**: Proper cleanup and error reporting
-
-## Logging
-
-Configure logging levels for debugging:
-
-```python
-client = MCPClient(log_level="DEBUG")
+```json
+{
+  "my-database": {
+    "name": "my-database",
+    "description": "Project SQLite database",
+    "server_type": "python",
+    "command": "uv",
+    "args": ["run", "mcp-server-sqlite", "--db-path", "data/project.db"],
+    "env": {
+      "DB_READONLY": "false"
+    },
+    "enabled": true,
+    "tags": ["database", "sqlite"]
+  }
+}
 ```
 
-Available levels: DEBUG, INFO, WARNING, ERROR
+### Claude Desktop Integration
 
-Log files are written to `mcp_client.log` in the project directory.
+Export configurations directly for Claude Desktop:
 
-## Environment Variables
+```bash
+mcp-gemini-client servers export
+```
 
-- `GEMINI_API_KEY`: Your Google Gemini API key (required)
-- `LOG_LEVEL`: Default logging level (INFO, DEBUG, etc.)
-
-## MCP Server Configuration
-
-Add servers to Claude Desktop configuration:
+This creates a `claude_desktop_config.json` file:
 
 ```json
 {
   "mcpServers": {
-    "your-server": {
+    "my-database": {
       "command": "uv",
-      "args": [
-        "--directory",
-        "/home/ty/Repositories/ai_workspace/gemini-mcp-client",
-        "run",
-        "gemini-mcp-client",
-        "chat",
-        "path/to/your/server.py",
-        "--model",
-        "gemini-2.5-pro-preview-03-25"
-      ],
+      "args": ["run", "mcp-server-sqlite", "--db-path", "data/project.db"],
       "env": {
-        "GEMINI_API_KEY": "your_gemini_api_key_here"
+        "DB_READONLY": "false"
       }
     }
   }
 }
+```
+
+## Quick Start
+
+```bash
+# Install and setup
+uv add . --optional-dependencies google-generativeai
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+
+# List available models
+mcp-gemini-client models
+
+# Test with echo server
+mcp-gemini-client chat examples/echo_server.py
+
+# Add a server configuration
+mcp-gemini-client servers add
+
+# Use configured server
+mcp-gemini-client chat my-server
+
+# Export for Claude Desktop
+mcp-gemini-client servers export
 ```
 
 ## Examples
@@ -239,57 +315,54 @@ Add servers to Claude Desktop configuration:
 ### Chat with Echo Server
 
 ```bash
-gemini-mcp-client chat examples/echo_server.py
-```
-
-### Get Server Information
-
-```bash
-gemini-mcp-client info examples/echo_server.py
+mcp-gemini-client chat examples/echo_server.py
 ```
 
 ### Model Selection Example
 
 ```bash
 # List available models
-gemini-mcp-client models
+mcp-gemini-client models
 
 # Use specific model
-gemini-mcp-client chat server.py --model gemini-2.5-pro-preview-03-25
+mcp-gemini-client chat server.py --model gemini-2.5-pro-preview-03-25
 ```
 
-### Custom Tool Usage
+### Server Configuration Example
 
 ```python
-# Connect and use tools programmatically
-client = MCPClient(model="gemini-2.0-flash")
-await client.connect_to_server("server.py")
+from mcp_gemini_client.config import get_config_manager, ServerConfig, ServerType
 
-# Call tools directly
-result = await client.call_tool_directly("add_numbers", {"a": 5, "b": 3})
-print(f"Result: {result}")  # Result: 8
+config_manager = get_config_manager()
 
-# Use AI to determine which tool to use
-response = await client.get_response("Add 10 and 20 together")
-print(response)  # AI will automatically use add_numbers tool
+# Add a database server
+db_server = ServerConfig(
+    name="project-db",
+    description="Project database server",
+    server_type=ServerType.PYTHON,
+    command="uv",
+    args=["run", "mcp-server-sqlite", "--db-path", "data/project.db"],
+    env={"DB_READONLY": "false"},
+    tags=["database", "project"]
+)
+
+config_manager.add_server(db_server)
+
+# Export for Claude Desktop
+config_manager.export_claude_desktop_config("claude_config.json")
 ```
 
-## Tips for Effective Usage
+## Architecture
 
-1. **Model Selection**:
-   - Use `gemini-2.0-flash` for quick responses
-   - Use `gemini-2.5-pro-preview-03-25` for complex reasoning
-   - Switch models based on task complexity
+The client is built with these key components:
 
-2. **Clear Prompts**: Be specific about what you want to accomplish
-
-3. **Tool Awareness**: Ask about available tools to understand capabilities
-
-4. **Context Management**: The AI maintains conversation history for better responses
-
-5. **Error Handling**: Check logs if something goes wrong
-
-6. **Resource Management**: Always close the client when done
+- **MCPClient**: Main client class handling server connections and conversations
+- **GeminiAgent**: Wrapper for different Gemini package implementations
+- **ConfigManager**: Server and client configuration management
+- **Async Context Management**: Proper resource cleanup and connection handling
+- **Model Management**: Runtime model selection and switching
+- **Error Handling**: Comprehensive error recovery and logging
+- **Type Safety**: Full type hints for better development experience
 
 ## Development
 
@@ -316,22 +389,18 @@ uv run pytest
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=gemini_mcp_client
+uv run pytest --cov=mcp_gemini_client
 
 # Run specific test
 uv run pytest tests/test_client.py::test_model_selection
 ```
 
-## Architecture
+## Documentation
 
-The client is built with these key components:
-
-- **MCPClient**: Main client class handling server connections and conversations
-- **GeminiAgent**: Wrapper for different Gemini package implementations
-- **Async Context Management**: Proper resource cleanup and connection handling
-- **Model Management**: Runtime model selection and switching
-- **Error Handling**: Comprehensive error recovery and logging
-- **Type Safety**: Full type hints for better development experience
+- **Usage Guide**: `prompts/usage_guide.md`
+- **Server Configuration**: `prompts/server_configuration_guide.md`
+- **Troubleshooting**: `prompts/troubleshooting.md`
+- **Best Practices**: `prompts/best_practices.md`
 
 ## Contributing
 

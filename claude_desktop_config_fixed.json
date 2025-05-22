@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "echo-server": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/ty/Repositories/ai_workspace/gemini-mcp-client",
+        "run",
+        "python",
+        "examples/echo_server.py"
+      ]
+    }
+  }
+}

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gemini-mcp-client"
+name = "mcp-gemini-client"
 version = "0.1.0"
 description = "Gemini-powered MCP (Model Context Protocol) Client"
 readme = "README.md"
@@ -40,7 +40,7 @@ dev = [
 ]
 
 [project.scripts]
-gemini-mcp-client = "gemini_mcp_client.cli:main"
+mcp-gemini-client = "mcp_gemini_client.cli:main"
 
 [tool.ruff]
 line-length = 88

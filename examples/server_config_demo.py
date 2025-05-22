@@ -3,8 +3,8 @@ Example demonstrating MCP server configuration management
 """
 
 import asyncio
-from gemini_mcp_client import MCPClient
-from gemini_mcp_client.config import get_config_manager, ServerConfig, ServerType
+from mcp_gemini_client import MCPClient
+from mcp_gemini_client.config import get_config_manager, ServerConfig, ServerType
 
 
 async def demo_server_management():
@@ -80,29 +80,29 @@ def demo_cli_usage():
     print("=" * 30)
     
     print("# List configured servers")
-    print("gemini-mcp-client servers list")
+    print("mcp-gemini-client servers list")
     
     print("\n# Add a new server interactively")
-    print("gemini-mcp-client servers add")
+    print("mcp-gemini-client servers add")
     
     print("\n# Connect to a configured server by name")
-    print("gemini-mcp-client chat echo-server")
+    print("mcp-gemini-client chat echo-server")
     
     print("\n# Enable/disable servers")
-    print("gemini-mcp-client servers enable my-server")
-    print("gemini-mcp-client servers disable my-server")
+    print("mcp-gemini-client servers enable my-server")
+    print("mcp-gemini-client servers disable my-server")
     
     print("\n# Export configuration for Claude Desktop")
-    print("gemini-mcp-client servers export my_claude_config.json")
+    print("mcp-gemini-client servers export my_claude_config.json")
     
     print("\n# Import from existing Claude Desktop config")
-    print("gemini-mcp-client servers import ~/.config/claude-desktop/claude_desktop_config.json")
+    print("mcp-gemini-client servers import ~/.config/claude-desktop/claude_desktop_config.json")
     
     print("\n# Set default model")
-    print("gemini-mcp-client config set default_model gemini-2.5-pro-preview-03-25")
+    print("mcp-gemini-client config set default_model gemini-2.5-pro-preview-03-25")
     
     print("\n# Show current configuration")
-    print("gemini-mcp-client config show")
+    print("mcp-gemini-client config show")
 
 
 def create_sample_servers():
@@ -184,10 +184,10 @@ async def main():
     
     print("\n🎉 Demo Complete!")
     print("\nNext steps:")
-    print("1. Run 'gemini-mcp-client servers list' to see all configured servers")
+    print("1. Run 'mcp-gemini-client servers list' to see all configured servers")
     print("2. Edit config/servers.json to customize server configurations")
-    print("3. Use 'gemini-mcp-client servers export' to create Claude Desktop config")
-    print("4. Test connections with 'gemini-mcp-client info <server-name>'")
+    print("3. Use 'mcp-gemini-client servers export' to create Claude Desktop config")
+    print("4. Test connections with 'mcp-gemini-client info <server-name>'")
 
 
 if __name__ == "__main__":

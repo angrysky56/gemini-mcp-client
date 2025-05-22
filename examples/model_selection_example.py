@@ -1,10 +1,10 @@
 """
-Example usage of the Gemini MCP Client with model selection
+Example usage of the MCP Gemini Client with model selection
 """
 
 import asyncio
 import os
-from gemini_mcp_client import MCPClient
+from mcp_gemini_client import MCPClient
 
 
 async def main():
@@ -120,7 +120,7 @@ async def interactive_model_selection():
 
 
 if __name__ == "__main__":
-    print("🎯 Gemini MCP Client - Model Selection Examples")
+    print("🎯 MCP Gemini Client - Model Selection Examples")
     print("=" * 60)
     
     # Run basic examples

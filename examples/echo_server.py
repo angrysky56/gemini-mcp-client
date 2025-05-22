@@ -2,7 +2,16 @@
 Simple Echo MCP Server for testing the client
 """
 
+import sys
+import logging
 from mcp.server.fastmcp import FastMCP
+
+# Configure logging to go to stderr instead of stdout to avoid mixing with MCP protocol
+logging.basicConfig(
+    level=logging.WARNING,  # Only show warnings and errors
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stderr  # Use stderr instead of stdout
+)
 
 # Create MCP server
 mcp = FastMCP("Echo Server")
@@ -40,4 +49,5 @@ def generate_poem(topic: str) -> str:
 
 
 if __name__ == "__main__":
+    # Run the server with minimal logging
     mcp.run()

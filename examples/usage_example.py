@@ -1,10 +1,10 @@
 """
-Example usage of the Gemini MCP Client
+Example usage of the MCP Gemini Client
 """
 
 import asyncio
 import os
-from gemini_mcp_client import MCPClient
+from mcp_gemini_client import MCPClient
 
 
 async def main():
