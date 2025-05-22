@@ -19,21 +19,11 @@ A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Goog
 - **Comprehensive Error Handling**: Robust error recovery and logging
 - **Type Hints**: Modern Python practices with full type safety
 
-## Installation
-
-This project uses `uv` for dependency management. Make sure you have `uv` installed.
-
-### Setting up the environment
-
-```bash
-# Create and activate virtual environment
-uv venv --python 3.12 --seed
-source .venv/bin/activate
-```
 
 📋 Easy Installation Instructions
 Here's the correct way to set it up with Claude- maybe, doesn't throw an error, can't test for a few hours:
 Just use this config in Claude Desktop:
+
 ```json
 {
   "mcpServers": {
@@ -64,9 +54,27 @@ Just use this config in Claude Desktop:
 }
 ```
 
+## Installation outside of Claude if someone wants to try it and maybe develop a Standalone UI for Gemeni with MCP Tools!:
+- possibly hallucinatory
+
+This project uses `uv` for dependency management. Make sure you have `uv` installed.
+
+### Setting up the environment
+
 ```bash
-# Install base dependencies- this is wrong, probably just do another uv pip install
-uv add .
+# Create and activate virtual environment
+uv venv --python 3.12 --seed
+source .venv/bin/activate
+
+
+```bash
+# Install base dependencies- this is wrong it seems.
+# uv add .
+
+# maybe
+/gemini-mcp-client
+uv sync
+uv add mcp
 
 # Install a Gemini package (choose one or more):
 uv add --optional-dependencies gemini-tool-agent
@@ -101,7 +109,7 @@ LOG_LEVEL=INFO
 
 ### Model Selection
 
-The client supports multiple Gemini models:
+The client supports multiple Gemini models- not sure if more can be added somehow:
 
 - `gemini-2.0-flash` - Fast, efficient model (default)
 - `gemini-2.5-pro-preview-03-25` - Advanced model for complex tasks
