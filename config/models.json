@@ -1,0 +1,54 @@
+{
+  "gemini_models": [
+    {
+      "name": "gemini-2.0-flash",
+      "tier": "free",
+      "description": "Fast, efficient model for most tasks"
+    },
+    {
+      "name": "gemini-2.5-pro-preview-05-06", 
+      "tier": "paid",
+      "description": "Latest advanced model for complex reasoning"
+    },
+    {
+      "name": "gemini-2.5-pro-preview-03-25",
+      "tier": "paid", 
+      "description": "Advanced model for complex tasks"
+    },
+    {
+      "name": "gemini-2.5-flash-preview-05-20",
+      "tier": "free",
+      "description": "Balanced speed and capability (latest)"
+    },
+    {
+      "name": "gemini-2.5-flash-preview-04-17",
+      "tier": "free",
+      "description": "Balanced speed and capability"
+    },
+    {
+      "name": "gemini-1.5-pro",
+      "tier": "paid",
+      "description": "Stable, reliable model"
+    },
+    {
+      "name": "gemini-1.5-flash",
+      "tier": "free",
+      "description": "Fast, lightweight model"
+    },
+    {
+      "name": "gemini-1.5-flash-8b",
+      "tier": "free", 
+      "description": "Ultra-lightweight model"
+    },
+    {
+      "name": "gemini-1.0-pro",
+      "tier": "paid",
+      "description": "Legacy professional model"
+    },
+    {
+      "name": "gemma-3n-e4b-it",
+      "tier": "free",
+      "description": "Experimental model with 30 RPM, 14400/day limits"
+    }
+  ]
+}

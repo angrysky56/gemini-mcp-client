@@ -4,7 +4,7 @@ Credit to and started from- [medium.com/@fruitful2007/building-an-mcp-client-101
 
 [pypi.org/project/gemini-tool-agent](https://pypi.org/project/gemini-tool-agent/)
 
-A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling.
+A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling. Working with Claude Desktop currently.
 
 ### Based on untested AI gen code by a non-coder use at own risk.
 
@@ -19,9 +19,15 @@ A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Goog
 - **Comprehensive Error Handling**: Robust error recovery and logging
 - **Type Hints**: Modern Python practices with full type safety
 
+![alt text](image-1.png)
+
+## Installation
 
 📋 Easy Installation Instructions
-Here's the correct way to set it up with Claude- maybe, doesn't throw an error, can't test for a few hours:
+Here's the correct way to set it up with Claude- maybe, You may beed to install this if not working properly:
+- cd /gemini-mcp-client && uv add google-generativeai
+
+Doesn't throw an error and works great for chat, not sure about Gemini MCP use.
 Just edit in your paths and use this config in Claude Desktop:
 
 ```json
@@ -54,6 +60,8 @@ Just edit in your paths and use this config in Claude Desktop:
 }
 ```
 
+![alt text](image.png)
+
 ## Installation outside of Claude if someone wants to try it and maybe develop a Standalone UI for Gemini with MCP Tools!:
 - possibly hallucinatory
 
@@ -77,13 +85,13 @@ uv sync
 uv add mcp
 
 # Install a Gemini package (choose one or more):
-uv add --optional-dependencies gemini-tool-agent
+uv add gemini-tool-agent
 # OR
-uv add --optional-dependencies google-generativeai
+uv add google-generativeai
 # OR
-uv add --optional-dependencies google-genai
+uv add google-genai
 # OR install all options
-uv add --optional-dependencies all-gemini
+uv add all-gemini
 ```
 
 ### Development setup

@@ -30,12 +30,6 @@ wheels = [
 ]
 
 [[package]]
-name = "asyncio-contextmanager"
-version = "1.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/06/d5/fd2ad931e9397c599c81a6a5284d24fa1135d16aac2cc312773b8e8a3828/asyncio-contextmanager-1.0.1.tar.gz", hash = "sha256:93b4620cd79623c3988c9f43e6f502263968645cd13aed3327a7ec8be43221d5", size = 2145, upload-time = "2017-03-05T16:13:06.277Z" }
-
-[[package]]
 name = "cachetools"
 version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -428,7 +422,7 @@ name = "mcp-gemini-client"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "asyncio-contextmanager" },
+    { name = "google-generativeai" },
     { name = "mcp" },
     { name = "python-dotenv" },
 ]
@@ -458,11 +452,11 @@ google-generativeai = [
 
 [package.metadata]
 requires-dist = [
-    { name = "asyncio-contextmanager", specifier = ">=1.0.0" },
     { name = "gemini-tool-agent", marker = "extra == 'all-gemini'", specifier = ">=0.1.0" },
     { name = "gemini-tool-agent", marker = "extra == 'gemini-tool-agent'", specifier = ">=0.1.0" },
     { name = "google-genai", marker = "extra == 'all-gemini'", specifier = ">=1.0.0" },
     { name = "google-genai", marker = "extra == 'google-genai'", specifier = ">=1.0.0" },
+    { name = "google-generativeai", specifier = ">=0.8.5" },
     { name = "google-generativeai", marker = "extra == 'all-gemini'", specifier = ">=0.8.0" },
     { name = "google-generativeai", marker = "extra == 'google-generativeai'", specifier = ">=0.8.0" },
     { name = "mcp", specifier = ">=1.0.0" },

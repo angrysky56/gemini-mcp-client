@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from contextlib import AsyncExitStack
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List, Union, Tuple
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ import mcp.types as types
 
 # Try to import different Gemini packages
 GEMINI_AVAILABLE = False
-GEMINI_PACKAGE = None
+GEMINI_PACKAGE: Optional[str] = None
 
 # Try gemini-tool-agent first
 try:
@@ -70,11 +70,13 @@ class ToolExecutionError(MCPClientError):
 class GeminiAgent:
     """Wrapper for different Gemini implementations."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash") -> None:
         self.api_key = api_key
         self.model = model
         self.tools: List[Dict[str, Any]] = []
         self.history: List[Dict[str, Any]] = []
+        self.agent: Optional[Any] = None
+        self.client: Optional[Any] = None
 
         if GEMINI_PACKAGE == "gemini-tool-agent":
             from gemini_tool_agent.agent import Agent
@@ -89,7 +91,7 @@ class GeminiAgent:
 
     def process_query(self, query: str) -> Dict[str, Any]:
         """Process a query and determine if tools are needed."""
-        if GEMINI_PACKAGE == "gemini-tool-agent" and hasattr(self, 'agent'):
+        if GEMINI_PACKAGE == "gemini-tool-agent" and self.agent:
             return self.agent.process_query(query)
         else:
             # Basic implementation for other packages
@@ -117,14 +119,14 @@ class GeminiAgent:
 
     def process_use_tool(self, tool_name: str) -> Dict[str, Any]:
         """Process tool usage request."""
-        if GEMINI_PACKAGE == "gemini-tool-agent" and hasattr(self, 'agent'):
+        if GEMINI_PACKAGE == "gemini-tool-agent" and self.agent:
             return self.agent.process_use_tool(tool_name)
         else:
             # Basic implementation
             tool = next((t for t in self.tools if t["name"] == tool_name), None)
             if tool:
                 # Extract required parameters from tool schema
-                params = {}
+                params: Dict[str, Any] = {}
                 if "input_schema" in tool and "properties" in tool["input_schema"]:
                     for param_name, param_info in tool["input_schema"]["properties"].items():
                         # Use example or default values
@@ -147,12 +149,12 @@ class GeminiAgent:
     def generate_response(self, prompt: str) -> str:
         """Generate a response using Gemini."""
         try:
-            if GEMINI_PACKAGE == "gemini-tool-agent" and hasattr(self, 'agent'):
+            if GEMINI_PACKAGE == "gemini-tool-agent" and self.agent:
                 return self.agent.generate_response(prompt)
-            elif GEMINI_PACKAGE == "google-generativeai":
+            elif GEMINI_PACKAGE == "google-generativeai" and self.client:
                 response = self.client.generate_content(prompt)
                 return response.text
-            elif GEMINI_PACKAGE == "google-genai":
+            elif GEMINI_PACKAGE == "google-genai" and self.client:
                 response = self.client.models.generate_content(
                     model=self.model,
                     contents=prompt
@@ -200,6 +202,8 @@ class MCPClient:
         self._connected = False
         self._server_info: Dict[str, Any] = {}
         self.model = model
+        self.api_key: Optional[str] = None
+        self.agent: Optional[GeminiAgent] = None
 
         # Initialize Gemini agent if available
         if GEMINI_AVAILABLE:
@@ -246,29 +250,48 @@ class MCPClient:
             self.logger.info(f"Model changed to: {model}")
 
             # Reinitialize agent with new model if needed
-            if GEMINI_PACKAGE == "google-generativeai":
+            if GEMINI_PACKAGE == "google-generativeai" and self.agent.client:
                 import google.generativeai as genai
                 self.agent.client = genai.GenerativeModel(model)
-            elif GEMINI_PACKAGE == "google-genai":
-                # The client handles model selection per request
-                pass
 
     def get_available_models(self) -> List[str]:
         """
         Get list of available Gemini models.
+        First tries to fetch from API, falls back to hardcoded list.
 
         Returns:
             List of available model names
         """
-        # Common Gemini models as of 2025
+        try:
+            # Try to get models dynamically from the API
+            if GEMINI_PACKAGE == "google-generativeai" and self.api_key:
+                import google.generativeai as genai
+                models = genai.list_models()
+                model_names = []
+                for model in models:
+                    # Extract model name from the full name (e.g. "models/gemini-2.0-flash" -> "gemini-2.0-flash")
+                    model_name = model.name.split('/')[-1] if '/' in model.name else model.name
+                    # Only include generative models that support generateContent
+                    if hasattr(model, 'supported_generation_methods') and 'generateContent' in model.supported_generation_methods:
+                        model_names.append(model_name)
+                
+                if model_names:
+                    return sorted(model_names)
+        except Exception as e:
+            self.logger.warning(f"Could not fetch models dynamically: {e}")
+        
+        # Fallback to hardcoded list
         return [
             "gemini-2.0-flash",
-            "gemini-2.5-pro-preview-03-25",
+            "gemini-2.5-pro-preview-05-06",
+            "gemini-2.5-pro-preview-03-25", 
+            "gemini-2.5-flash-preview-05-20",
             "gemini-2.5-flash-preview-04-17",
             "gemini-1.5-pro",
             "gemini-1.5-flash",
             "gemini-1.5-flash-8b",
             "gemini-1.0-pro",
+            "gemma-3n-e4b-it",
         ]
 
     async def connect_to_server(self, server_script_path: str) -> None:
@@ -461,6 +484,9 @@ class MCPClient:
             return "Tool usage requested but no tool name provided."
 
         try:
+            if not self.agent or not self.session:
+                return "Agent or session not available for tool usage."
+
             # Get tool usage context
             tool_response = self.agent.process_use_tool(tool_name)
             self.agent.history.append({"role": "assistant", "content": tool_response})
@@ -492,6 +518,9 @@ class MCPClient:
 
     async def _generate_contextual_response(self, user_input: str) -> str:
         """Generate a contextual response using conversation history."""
+        if not self.agent:
+            return await self._basic_response(user_input)
+
         conversation_context = (
             self.agent.history[-5:] if len(self.agent.history) >= 5
             else self.agent.history
@@ -617,7 +646,7 @@ class MCPClient:
             self.logger.error(f"Failed to call tool {tool_name}: {e}")
             raise ToolExecutionError(f"Tool call failed: {e}") from e
 
-    async def read_resource(self, uri: str) -> tuple[str, Optional[str]]:
+    async def read_resource(self, uri: str) -> Tuple[str, Optional[str]]:
         """
         Read a resource from the server.
 
