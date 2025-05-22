@@ -1,6 +1,12 @@
 # MCP Gemini Client
 
-A powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling.
+Credit to and started from- [medium.com/@fruitful2007/building-an-mcp-client-101-lets-build-one-for-a-gemini-chat-agent](https://medium.com/@fruitful2007/building-an-mcp-client-101-lets-build-one-for-a-gemini-chat-agent-37f9308a802b)
+
+[pypi.org/project/gemini-tool-agent](https://pypi.org/project/gemini-tool-agent/)
+
+A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Google's Gemini AI models for intelligent tool usage and conversation handling.
+
+### Based on untested AI gen code by a non-coder use at own risk.
 
 ## Features
 
@@ -25,13 +31,25 @@ uv venv --python 3.12 --seed
 source .venv/bin/activate
 ```
 
-📋 Installation Instructions
-You don't need to run uv add . from within the project directory. Here's the correct way to set it up:
-Option 1: Use the Echo Server Directly (Recommended)
-
+📋 Easy Installation Instructions
+Here's the correct way to set it up with Claude- maybe, doesn't throw an error, can't test for a few hours:
+Just use this config in Claude Desktop:
 ```json
 {
   "mcpServers": {
+    "gemini-ai": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/ty/Repositories/ai_workspace/gemini-mcp-client",
+        "run",
+        "python",
+        "servers/gemini_mcp_server.py"
+      ],
+      "env": {
+        "GEMINI_API_KEY": "your_gemini_api_key_here"
+      }
+    },
     "echo-server": {
       "command": "uv",
       "args": [
@@ -45,46 +63,9 @@ Option 1: Use the Echo Server Directly (Recommended)
   }
 }
 ```
-Option 2: If You Want to Use the MCP Client
-First install the dependencies:
 
 ```bash
-cd /gemini-mcp-client
-
-# Install base dependencies
-uv sync
-
-# Install a Gemini package
-uv add google-generativeai
-
-# Set up environment
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
-```
-Then use this config:
-```json
-{
-  "mcpServers": {
-    "mcp-gemini-client": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/home/ty/Repositories/ai_workspace/gemini-mcp-client",
-        "run",
-        "mcp-gemini-client",
-        "chat",
-        "examples/echo_server.py"
-      ],
-      "env": {
-        "GEMINI_API_KEY": "your_actual_api_key_here"
-      }
-    }
-  }
-}
-```
-
-```bash
-# Install base dependencies- this is wrong
+# Install base dependencies- this is wrong, probably just do another uv pip install
 uv add .
 
 # Install a Gemini package (choose one or more):
