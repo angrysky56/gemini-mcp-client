@@ -1,0 +1,46 @@
+{
+  "echo-server": {
+    "name": "echo-server",
+    "description": "Simple echo server for testing",
+    "server_type": "python",
+    "command": "python",
+    "args": ["examples/echo_server.py"],
+    "env": null,
+    "working_directory": null,
+    "enabled": true,
+    "tags": ["example", "testing"]
+  },
+  "memory-server": {
+    "name": "memory-server",
+    "description": "Memory storage server",
+    "server_type": "javascript",
+    "command": "npx",
+    "args": ["@modelcontextprotocol/server-memory"],
+    "env": null,
+    "working_directory": null,
+    "enabled": true,
+    "tags": ["memory", "storage"]
+  },
+  "sqlite-server": {
+    "name": "sqlite-server",
+    "description": "SQLite database server",
+    "server_type": "python",
+    "command": "uv",
+    "args": ["run", "mcp-server-sqlite", "--db-path", "data/database.db"],
+    "env": null,
+    "working_directory": null,
+    "enabled": false,
+    "tags": ["database", "sql"]
+  },
+  "filesystem-server": {
+    "name": "filesystem-server",
+    "description": "Filesystem access server",
+    "server_type": "javascript",
+    "command": "npx",
+    "args": ["@modelcontextprotocol/server-filesystem", "/allowed/path"],
+    "env": null,
+    "working_directory": null,
+    "enabled": false,
+    "tags": ["filesystem", "files"]
+  }
+}
