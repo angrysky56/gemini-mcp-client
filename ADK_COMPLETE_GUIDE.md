@@ -110,7 +110,7 @@ uvx docker-mcp --help
 
 ### Environment Variables (.env)
 ```env
-GEMINI_API_KEY=AIzaSyCIHhoqVyokmRTRdDusygetDHRexCcR9Fg  # ✅ Set
+GEMINI_API_KEY=  # ✅ Set
 LOG_LEVEL=INFO
 ```
 
