@@ -48,7 +48,7 @@
     {
       "name": "gemma-3n-e4b-it",
       "tier": "free",
-      "description": "Experimental model with 30 RPM, 14400/day limits"
+      "description": "Efficient model with generous rate limits (30 RPM, 14400/day) - RECOMMENDED"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "default_model": "gemini-2.0-flash",
+  "default_model": "gemma-3n-e4b-it",
   "log_level": "INFO",
   "api_key": null,
   "connection_timeout": 30.0,
