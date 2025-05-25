@@ -12,7 +12,7 @@ from google.adk.tools.mcp_tool.mcp_toolset import StdioServerParameters
 # Define all your MCP servers
 mcp_tools = []
 
-# 1. SQLite MCP Server
+# SQLite MCP Server
 mcp_tools.append(
     MCPToolset(
         connection_params=StdioServerParameters(
@@ -30,7 +30,7 @@ mcp_tools.append(
     )
 )
 
-# 2. Docker MCP Server
+# Docker MCP Server
 mcp_tools.append(
     MCPToolset(
         connection_params=StdioServerParameters(
@@ -41,7 +41,7 @@ mcp_tools.append(
     )
 )
 
-# 3. Desktop Commander MCP Server
+# Desktop Commander MCP Server
 mcp_tools.append(
     MCPToolset(
         connection_params=StdioServerParameters(
@@ -59,24 +59,8 @@ mcp_tools.append(
     )
 )
 
-# 4. Chroma Vector Database MCP Server
-mcp_tools.append(
-    MCPToolset(
-        connection_params=StdioServerParameters(
-            command='uvx',
-            args=[
-                'chroma-mcp',
-                '--client-type',
-                'persistent',
-                '--data-dir',
-                '/home/ty/Repositories/chroma-db'
-            ],
-        ),
-        tool_filter=None,
-    )
-)
 
-# 5. ArXiv MCP Server
+# ArXiv MCP Server
 mcp_tools.append(
     MCPToolset(
         connection_params=StdioServerParameters(
@@ -94,7 +78,7 @@ mcp_tools.append(
     )
 )
 
-# 6. Package Version MCP Server
+# Package Version MCP Server
 mcp_tools.append(
     MCPToolset(
         connection_params=StdioServerParameters(
@@ -105,14 +89,14 @@ mcp_tools.append(
     )
 )
 
-# 7. Code Executor MCP Server
+# Code Executor MCP Server
 mcp_tools.append(
     MCPToolset(
         connection_params=StdioServerParameters(
             command='node',
             args=['/home/ty/Repositories/mcp_code_executor/build/index.js'],
             env={
-                'CODE_STORAGE_DIR': '/home/ty/Repositories/ai_workspace/python_coding_storage/',
+                'CODE_STORAGE_DIR': '/home/ty/Repositories/ai_workspace/python_coding_storage',
                 'CONDA_ENV_NAME': 'mcp_code_executor_env'
             }
         ),
@@ -122,21 +106,20 @@ mcp_tools.append(
 
 # Define the root agent with all MCP tools
 agent = LlmAgent(
-    model='gemini-1.5-flash-8b',  # Lightweight model with good rate limits
+    model='gemini-2.0-flash-lite',  # Lightweight model with good rate limits
     name='multi_mcp_assistant',
     instruction="""You are a comprehensive AI assistant with access to multiple powerful tools:
 
-1. **SQLite Database**: Query and manage algorithm platform database
-2. **Docker**: Manage containers, images, and deployments 
-3. **Desktop Commander**: Control desktop applications and system operations
-4. **Chroma Vector DB**: Store, search, and retrieve vectorized data and documents
-5. **ArXiv Research**: Search, download, and analyze academic papers
-6. **Package Versions**: Check latest versions of software packages across ecosystems
-7. **Code Executor**: Execute Python code safely in isolated environments
+ **SQLite Database**: Query and manage algorithm platform database
+ **Docker**: Manage containers, images, and deployments
+ **Desktop Commander**: Control desktop applications and system operations
+ **ArXiv Research**: Search, download, and analyze academic papers
+ **Package Versions**: Check latest versions of software packages across ecosystems
+ **Code Executor**: Execute Python code safely in isolated environments
 
 Use these tools intelligently to help users with:
 - Data analysis and database operations
-- Container and deployment management  
+- Container and deployment management
 - System automation and desktop control
 - Document storage and semantic search
 - Research paper analysis and retrieval
@@ -151,36 +134,29 @@ Always explain what you're doing and suggest the most appropriate tools for each
 
 # Alternative single-server testing agents for debugging
 sqlite_agent = LlmAgent(
-    model='gemini-1.5-flash-8b', 
+    model='gemini-2.0-flash-lite',
     name='sqlite_test_agent',
     instruction="You help users query and manage SQLite databases.",
     tools=[mcp_tools[0]]  # Just SQLite
 )
 
 docker_agent = LlmAgent(
-    model='gemini-1.5-flash-8b',
-    name='docker_test_agent', 
+    model='gemini-2.0-flash-lite',
+    name='docker_test_agent',
     instruction="You help users manage Docker containers and images.",
     tools=[mcp_tools[1]]  # Just Docker
 )
 
-chroma_agent = LlmAgent(
-    model='gemini-1.5-flash-8b',
-    name='chroma_test_agent',
-    instruction="You help users with vector database operations using Chroma.",
-    tools=[mcp_tools[3]]  # Just Chroma
-)
-
 arxiv_agent = LlmAgent(
-    model='gemini-1.5-flash-8b',
+    model='gemini-2.0-flash-lite',
     name='arxiv_test_agent',
     instruction="You help users search and analyze academic papers from ArXiv.",
-    tools=[mcp_tools[4]]  # Just ArXiv
+    tools=[mcp_tools[2]]  # Just ArXiv
 )
 
 code_executor_agent = LlmAgent(
-    model='gemini-1.5-flash-8b',
+    model='gemini-2.0-flash-lite',
     name='code_executor_test_agent',
     instruction="You help users execute and test Python code safely.",
-    tools=[mcp_tools[6]]  # Just Code Executor
+    tools=[mcp_tools[3]]  # Just Code Executor
 )

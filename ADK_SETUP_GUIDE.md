@@ -72,10 +72,11 @@ echo "Ports cleaned up!"
 Let me update all agents to use the most generous free models:
 
 **Some Models to use (Limited but Free):**
-1. `gemini-2.5-flash-preview-05-20` - Latest experimental flash 10 rpm 500 req/day (free)
-2. `gemini-2.0-flash-lite` 30 rpm 1500 req/day (free)
-2. `gemma-3-27b-it` - 30 rpm 14400 req/day (free)
-3. `gemma-3n-e4b-it` - 30 rpm 14400 req/day (free)
-4. `gemini-2.5-pro-preview-05-06` - 5 rpm 25 req/day (free)
-5. `gemini-1.5-pro` - 2 rpm 50 req/day (free)
-6. `gemini-2.0-flash-preview-image-generation` - 15 rpm 1500 req/day (free)
+ `gemini-2.5-flash-preview-05-20` - Latest experimental flash 10 rpm 500 req/day (free)
+ `gemini-2.5-flash-preview-04-17` - Experimental flash 10 rpm 500 req/day (free)
+ `gemini-2.0-flash-lite` 30 rpm 1500 req/day (free)
+ `gemma-3-27b-it` - 30 rpm 14400 req/day (free)
+ `gemma-3n-e4b-it` - 30 rpm 14400 req/day (free)
+ `gemini-2.5-pro-preview-05-06` - 5 rpm 25 req/day (free)
+ `gemini-1.5-pro` - 2 rpm 50 req/day (free)
+ `gemini-2.0-flash-preview-image-generation` - 15 rpm 1500 req/day (free)

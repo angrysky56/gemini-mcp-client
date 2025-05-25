@@ -24,7 +24,7 @@ All agents now use the most generous experimental/preview models:
 | **ArXiv Agent** | `gemini-2.5-pro-exp-03-25` | Experimental pro - best for research analysis |
 | **Code Executor** | `gemini-2.0-flash-exp` | Experimental flash - efficient for code tasks |
 
-### Model Hierarchy (Free Usage)
+### Model Hierarchy
 1. 🥇 **`gemini-2.5-pro-exp-03-25`** - Highest capability, generous experimental limits
 2. 🥈 **`gemini-2.5-flash-preview-05-20`** - Latest preview, very generous
 3. 🥉 **`gemini-2.0-flash-exp`** - Experimental 2.0, good limits

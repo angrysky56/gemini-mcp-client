@@ -3,12 +3,12 @@
 # This script loads the .env file and starts ADK with proper environment variables
 
 PROJECT_DIR="/home/ty/Repositories/ai_workspace/gemini-mcp-client"
-cd "$PROJECT_DIR"
+cd "$PROJECT_DIR" || exit 1
 
 # Load environment variables from .env file
 if [ -f ".env" ]; then
     echo "📁 Loading environment variables from .env file..."
-    export $(cat .env | grep -v '^#' | xargs)
+    export "$(grep -v '^#' .env | xargs)"
     echo "✅ GEMINI_API_KEY loaded: ${GEMINI_API_KEY:0:20}..."
 else
     echo "❌ .env file not found!"

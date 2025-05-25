@@ -8,20 +8,20 @@ PORT=8081
 case "$1" in
     start)
         echo "🚀 Starting ADK Web Interface..."
-        cd "$PROJECT_DIR"
+        cd "$PROJECT_DIR" || exit 1
         ./cleanup_ports.sh
         echo "Starting on port $PORT..."
         uv run adk web agents --port $PORT --host 0.0.0.0
         ;;
     stop)
         echo "🛑 Stopping ADK Web Interface..."
-        cd "$PROJECT_DIR"
+        cd "$PROJECT_DIR" || exit 1
         ./cleanup_ports.sh
         echo "✅ ADK stopped and ports cleaned up"
         ;;
     restart)
         echo "🔄 Restarting ADK Web Interface..."
-        cd "$PROJECT_DIR"
+        cd "$PROJECT_DIR" || exit 1
         ./cleanup_ports.sh
         sleep 2
         echo "Starting on port $PORT..."

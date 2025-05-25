@@ -16,9 +16,9 @@ config_path = Path(__file__).parent.parent / "agent_config.json"
 if config_path.exists():
     with open(config_path) as f:
         config = json.load(f)
-    model_name = config.get("default_model", "gemini-1.5-flash-8b")
+    model_name = config.get("default_model", "gemini-2.0-flash-lite")
 else:
-    model_name = "gemini-1.5-flash-8b"
+    model_name = "gemini-2.0-flash-lite"
 
 # Define all your MCP servers
 mcp_tools = []
@@ -138,7 +138,7 @@ agent = LlmAgent(
     instruction=f"""You are a comprehensive AI assistant running on {model_name} with access to multiple powerful tools:
 
 1. **SQLite Database**: Query and manage algorithm platform database
-2. **Docker**: Manage containers, images, and deployments 
+2. **Docker**: Manage containers, images, and deployments
 3. **Desktop Commander**: Control desktop applications and system operations
 4. **Chroma Vector DB**: Store, search, and retrieve vectorized data and documents
 5. **ArXiv Research**: Search, download, and analyze academic papers
@@ -147,7 +147,7 @@ agent = LlmAgent(
 
 Use these tools intelligently to help users with:
 - Data analysis and database operations
-- Container and deployment management  
+- Container and deployment management
 - System automation and desktop control
 - Document storage and semantic search
 - Research paper analysis and retrieval
