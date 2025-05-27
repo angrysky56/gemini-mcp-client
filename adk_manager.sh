@@ -3,7 +3,7 @@
 # Usage: ./adk_manager.sh [start|stop|restart|status]
 
 PROJECT_DIR="/home/ty/Repositories/ai_workspace/gemini-mcp-client"
-PORT=8081
+PORT=8000
 
 case "$1" in
     start)

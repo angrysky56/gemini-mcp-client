@@ -5,35 +5,40 @@ This module provides a client for connecting to MCP servers and interacting with
 using Google's Gemini AI model for intelligent tool usage and conversation handling.
 """
 
-import asyncio
 import logging
 import os
+import pprint
 import sys
-from contextlib import AsyncExitStack
-from typing import Optional, Dict, Any, List, Union, Tuple
+from contextlib import AsyncExitStack, asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-import mcp.types as types
+from openai import models
 
+client = genai.Client(
+    api_key='GEMINI_API_KEY',
+    http_options=types.HttpOptions(api_version='v1alpha')
+)
 # Try to import different Gemini packages
 GEMINI_AVAILABLE = False
-GEMINI_PACKAGE: Optional[str] = None
+GEMINI_PACKAGE: str | None = None
 
 # Try gemini-tool-agent first
 try:
-    from gemini_tool_agent.agent import Agent
+    import agents.full_mcp_agent.agent
     GEMINI_AVAILABLE = True
-    GEMINI_PACKAGE = "gemini-tool-agent"
+    GEMINI_PACKAGE = "full_mcp_agent"
 except ImportError:
     pass
 
 # Try google-generativeai as fallback
 if not GEMINI_AVAILABLE:
     try:
-        import google.generativeai as genai
         GEMINI_AVAILABLE = True
         GEMINI_PACKAGE = "google-generativeai"
     except ImportError:
@@ -67,29 +72,25 @@ class ToolExecutionError(MCPClientError):
     pass
 
 
-class GeminiAgent:
+class Geminiagent:
     """Wrapper for different Gemini implementations."""
 
     def __init__(self, api_key: str, model: str = "gemini-2.0-flash") -> None:
         self.api_key = api_key
         self.model = model
-        self.tools: List[Dict[str, Any]] = []
-        self.history: List[Dict[str, Any]] = []
-        self.agent: Optional[Any] = None
-        self.client: Optional[Any] = None
+        self.tools: list[dict[str, Any]] = []
+        self.history: list[dict[str, Any]] = []
+        self.agent: Any | None = None
+        self.client: Any | None = None
 
-        if GEMINI_PACKAGE == "gemini-tool-agent":
-            from gemini_tool_agent.agent import Agent
-            self.agent = Agent(api_key)
-        elif GEMINI_PACKAGE == "google-generativeai":
-            genai.configure(api_key=api_key)
-            self.client = genai.GenerativeModel(model)
+        if GEMINI_PACKAGE == "full_mcp_agent":
+                from agents.full_mcp_agent import agent
         elif GEMINI_PACKAGE == "google-genai":
             self.client = new_genai.Client(api_key=api_key)
         else:
             raise RuntimeError("No Gemini package available")
 
-    def process_query(self, query: str) -> Dict[str, Any]:
+    def process_query(self, query: str) -> dict[str, Any]:
         """Process a query and determine if tools are needed."""
         if GEMINI_PACKAGE == "gemini-tool-agent" and self.agent:
             return self.agent.process_query(query)
@@ -117,16 +118,16 @@ class GeminiAgent:
 
             return {"needs_direct_response": True, "direct_response": None}
 
-    def process_use_tool(self, tool_name: str) -> Dict[str, Any]:
+    def process_use_tool(self, tool_name: str) -> dict[str, Any]:
         """Process tool usage request."""
-        if GEMINI_PACKAGE == "gemini-tool-agent" and self.agent:
+        if GEMINI_PACKAGE == "full_mcp_agent" and self.agent:
             return self.agent.process_use_tool(tool_name)
         else:
             # Basic implementation
             tool = next((t for t in self.tools if t["name"] == tool_name), None)
             if tool:
                 # Extract required parameters from tool schema
-                params: Dict[str, Any] = {}
+                params: dict[str, Any] = {}
                 if "input_schema" in tool and "properties" in tool["input_schema"]:
                     for param_name, param_info in tool["input_schema"]["properties"].items():
                         # Use example or default values
@@ -180,7 +181,7 @@ class MCPClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "gemini-2.0-flash",
         log_level: str = "INFO"
     ) -> None:
@@ -189,7 +190,7 @@ class MCPClient:
 
         Args:
             api_key: Gemini API key. If None, will try to load from environment.
-            model: Gemini model to use (e.g., "gemini-2.0-flash", "gemini-1.5-pro")
+            model: Gemini model to use (e.g., "gemini-2.0-flash-lite", "gemini-2.5-pro-preview-05-06")
             log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
         """
         # Set up logging
@@ -197,13 +198,13 @@ class MCPClient:
         self.logger = logging.getLogger(__name__)
 
         # Initialize connection state
-        self.session: Optional[ClientSession] = None
+        self.session: ClientSession | None = None
         self.exit_stack = AsyncExitStack()
         self._connected = False
-        self._server_info: Dict[str, Any] = {}
+        self._server_info: dict[str, Any] = {}
         self.model = model
-        self.api_key: Optional[str] = None
-        self.agent: Optional[GeminiAgent] = None
+        self.api_key: str | None = None
+        self.agent: Geminiagent | None = None
 
         # Initialize Gemini agent if available
         if GEMINI_AVAILABLE:
@@ -215,7 +216,7 @@ class MCPClient:
                 self.agent = None
             else:
                 try:
-                    self.agent = GeminiAgent(self.api_key, model)
+                    self.agent = Geminiagent(self.api_key, model)
                     self.logger.info(f"Gemini agent initialized with model: {model} using {GEMINI_PACKAGE}")
                 except Exception as e:
                     self.logger.error(f"Failed to initialize Gemini agent: {e}")
@@ -225,7 +226,6 @@ class MCPClient:
                 "No Gemini package available. Install google-generativeai, google-genai, or gemini-tool-agent for AI features."
             )
             self.agent = None
-
     def _setup_logging(self, log_level: str) -> None:
         """Set up logging configuration."""
         logging.basicConfig(
@@ -251,47 +251,43 @@ class MCPClient:
 
             # Reinitialize agent with new model if needed
             if GEMINI_PACKAGE == "google-generativeai" and self.agent.client:
-                import google.generativeai as genai
-                self.agent.client = genai.GenerativeModel(model)
+                import google.genai as genai
+                self.agent.client = genai
 
-    def get_available_models(self) -> List[str]:
+    def get_available_models(self) -> list[str]:
         """
         Get list of available Gemini models.
         First tries to fetch from API, falls back to hardcoded list.
 
         Returns:
-            List of available model names
+            list of available model names
         """
         try:
             # Try to get models dynamically from the API
             if GEMINI_PACKAGE == "google-generativeai" and self.api_key:
                 import google.generativeai as genai
-                models = genai.list_models()
+
                 model_names = []
-                for model in models:
+                for model in genai.models:
+                    pprint.pprint(models)
+
                     # Extract model name from the full name (e.g. "models/gemini-2.0-flash" -> "gemini-2.0-flash")
                     model_name = model.name.split('/')[-1] if '/' in model.name else model.name
                     # Only include generative models that support generateContent
                     if hasattr(model, 'supported_generation_methods') and 'generateContent' in model.supported_generation_methods:
                         model_names.append(model_name)
-                
+
                 if model_names:
                     return sorted(model_names)
         except Exception as e:
             self.logger.warning(f"Could not fetch models dynamically: {e}")
-        
+
         # Fallback to hardcoded list
         return [
             "gemini-2.0-flash",
             "gemini-2.5-pro-preview-05-06",
-            "gemini-2.5-pro-preview-03-25", 
             "gemini-2.5-flash-preview-05-20",
             "gemini-2.5-flash-preview-04-17",
-            "gemini-1.5-pro",
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-8b",
-            "gemini-1.0-pro",
-            "gemma-3n-e4b-it",
         ]
 
     async def connect_to_server(self, server_script_path: str) -> None:
@@ -332,9 +328,14 @@ class MCPClient:
                 env=None,
             )
 
-            # Establish connection
+            # Establish connection using stdio_client with proper context management
+            @asynccontextmanager
+            async def stdio_client_context():
+                async with stdio_client(server_params) as client:
+                    yield client
+
             read_stream, write_stream = await self.exit_stack.enter_async_context(
-                stdio_client(server_params)
+                stdio_client_context()
             )
 
             # Create session
@@ -361,7 +362,7 @@ class MCPClient:
             return
 
         try:
-            # List available tools
+            # list available tools
             tools_response = await self.session.list_tools()
             tools = []
 
@@ -378,9 +379,9 @@ class MCPClient:
             # Update agent with tools
             if self.agent:
                 self.agent.tools = tools
-                self.logger.info(f"Agent updated with {len(tools)} tools")
+                self.logger.info(f"agent updated with {len(tools)} tools")
 
-            # List available resources
+            # list available resources
             try:
                 resources_response = await self.session.list_resources()
                 resources = [
@@ -398,7 +399,7 @@ class MCPClient:
                 self.logger.warning(f"Could not list resources: {e}")
                 self._server_info["resources"] = []
 
-            # List available prompts
+            # list available prompts
             try:
                 prompts_response = await self.session.list_prompts()
                 prompts = [
@@ -477,7 +478,7 @@ class MCPClient:
             self.logger.error(f"Error processing response: {e}")
             return f"An error occurred while processing your request: {str(e)}"
 
-    async def _handle_tool_usage(self, response: Dict[str, Any], user_input: str) -> str:
+    async def _handle_tool_usage(self, response: dict[str, Any], user_input: str) -> str:
         """Handle tool usage workflow."""
         tool_name = response.get("tool_name")
         if not tool_name:
@@ -485,7 +486,7 @@ class MCPClient:
 
         try:
             if not self.agent or not self.session:
-                return "Agent or session not available for tool usage."
+                return "agent or session not available for tool usage."
 
             # Get tool usage context
             tool_response = self.agent.process_use_tool(tool_name)
@@ -608,7 +609,7 @@ class MCPClient:
                 print(f"❌ Error: {str(e)}")
                 self.logger.error(f"Chat loop error: {e}")
 
-    async def get_server_info(self) -> Dict[str, Any]:
+    async def get_server_info(self) -> dict[str, Any]:
         """Get information about the connected server."""
         if not self._connected:
             raise MCPClientError("Not connected to server")
@@ -624,7 +625,7 @@ class MCPClient:
             "agent_available": self.agent is not None
         }
 
-    async def call_tool_directly(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
+    async def call_tool_directly(self, tool_name: str, arguments: dict[str, Any]) -> Any:
         """
         Call a tool directly with provided arguments.
 
@@ -646,7 +647,7 @@ class MCPClient:
             self.logger.error(f"Failed to call tool {tool_name}: {e}")
             raise ToolExecutionError(f"Tool call failed: {e}") from e
 
-    async def read_resource(self, uri: str) -> Tuple[str, Optional[str]]:
+    async def read_resource(self, uri: str) -> tuple[str, str | None]:
         """
         Read a resource from the server.
 
@@ -661,10 +662,14 @@ class MCPClient:
 
         try:
             result = await self.session.read_resource(uri)
-            return result
+            # Convert contents to string if it's a list of text contents
+            content = str(result.contents[0]) if result.contents else ""
+            mime_type = getattr(result, 'mimetype', None)
+            return content, mime_type
         except Exception as e:
             self.logger.error(f"Failed to read resource {uri}: {e}")
             raise MCPClientError(f"Resource read failed: {e}") from e
+
 
     async def close(self) -> None:
         """Close the client and clean up resources."""

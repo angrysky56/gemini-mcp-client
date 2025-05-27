@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 from mcp_gemini_client.client import MCPClient
 
@@ -39,8 +40,8 @@ async def get_gemini_client() -> MCPClient:
         load_dotenv()
 
         # Initialize with environment variables
-        api_key = os.getenv("GEMINI_API_KEY")
-        default_model = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
+        api_key = os.getenv("GOOGLE_API_KEY")
+        default_model = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash-lite")
 
         gemini_client = MCPClient(
             api_key=api_key,
@@ -52,13 +53,13 @@ async def get_gemini_client() -> MCPClient:
 
 
 @mcp.tool()
-async def chat_with_gemini(prompt: str, model: str = "gemini-2.0-flash") -> str:
+async def chat_with_gemini(prompt: str, model: str = "gemini-2.0-flash-lite") -> str:
     """
     Chat with Gemini AI model.
 
     Args:
         prompt: The message to send to Gemini
-        model: The Gemini model to use (default: gemini-2.0-flash)
+        model: The Gemini model to use (default: gemini-2.0-flash-lite)
 
     Returns:
         Gemini's response
@@ -128,13 +129,13 @@ async def gemini_model_comparison(prompt: str, models: list[str] | None = None) 
 
     Args:
         prompt: The prompt to send to all models
-        models: List of models to compare (default: ["gemini-2.0-flash", "gemini-1.5-pro"])
+        models: List of models to compare (default: ["gemini-2.0-flash-lite", "gemini-2.5-flash-preview-05-20"])
 
     Returns:
         Dictionary with model names as keys and responses as values
     """
     if models is None:
-        models = ["gemini-2.0-flash", "gemini-1.5-pro"]
+        models = ["gemini-2.0-flash-lite", "gemini-2.5-flash-preview-05-20"]
 
     try:
         client = await get_gemini_client()

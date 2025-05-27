@@ -12,7 +12,7 @@ root_agent = LlmAgent(
     model='gemini-2.0-flash',
     name='sqlite_test_agent',
     instruction="""You are a database assistant with access to an SQLite database.
-    
+
 You can help users:
 - Query the algorithm platform database
 - Explore database structure and contents

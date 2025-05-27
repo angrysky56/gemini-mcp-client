@@ -25,7 +25,7 @@ A (potentially, lol) powerful MCP (Model Context Protocol) client that uses Goog
 ![alt text](image-2.png)
 
 Using "adk web" from agents directory- alter the agent.py paths to your own for simple Gemini mcp use for now until I get a better setup.
-
+full_mcp_agent-README.md
 ![alt text](image-3.png)
 
 ![alt text](image-4.png)

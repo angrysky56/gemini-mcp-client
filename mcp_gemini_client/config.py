@@ -2,13 +2,13 @@
 Configuration management for MCP servers and client settings
 """
 
-from dataclasses import asdict, dataclass
-from enum import Enum
 import json
 import logging
 import os
+from dataclasses import asdict, dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class ServerType(Enum):

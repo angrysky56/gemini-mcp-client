@@ -1,54 +1,20 @@
 {
   "gemini_models": [
     {
-      "name": "gemini-2.0-flash",
-      "tier": "free",
-      "description": "Fast, efficient model for most tasks"
+      "name": "gemini-2.0-flash-lite",
+      "description": "30 rpm 500 rpd"
     },
     {
-      "name": "gemini-2.5-pro-preview-05-06", 
-      "tier": "paid",
-      "description": "Latest advanced model for complex reasoning"
-    },
-    {
-      "name": "gemini-2.5-pro-preview-03-25",
-      "tier": "paid", 
-      "description": "Advanced model for complex tasks"
+      "name": "gemini-2.5-pro-preview-05-06",
+      "description": "5 rpm 25 rpd"
     },
     {
       "name": "gemini-2.5-flash-preview-05-20",
-      "tier": "free",
-      "description": "Balanced speed and capability (latest)"
+      "description": "10 rpm 500 rpd"
     },
     {
-      "name": "gemini-2.5-flash-preview-04-17",
-      "tier": "free",
-      "description": "Balanced speed and capability"
-    },
-    {
-      "name": "gemini-1.5-pro",
-      "tier": "paid",
-      "description": "Stable, reliable model"
-    },
-    {
-      "name": "gemini-1.5-flash",
-      "tier": "free",
-      "description": "Fast, lightweight model"
-    },
-    {
-      "name": "gemini-1.5-flash-8b",
-      "tier": "free", 
-      "description": "Ultra-lightweight model"
-    },
-    {
-      "name": "gemini-1.0-pro",
-      "tier": "paid",
-      "description": "Legacy professional model"
-    },
-    {
-      "name": "gemma-3n-e4b-it",
-      "tier": "free",
-      "description": "Efficient model with generous rate limits (30 RPM, 14400/day) - RECOMMENDED"
+      "name": "gemini-2.0-flash-preview-image-generation",
+      "description": "Image Generation 10 rpm 1500 rpd"
     }
   ]
 }

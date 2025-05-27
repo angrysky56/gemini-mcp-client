@@ -171,3 +171,7 @@ mcp_client.log
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# MCP server info may have API keys or other sensitive information
+config/servers.json
+agents/full_mcp_agent/.env

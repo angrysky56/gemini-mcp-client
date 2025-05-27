@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 """
-Multi-MCP Agent for ADK Web Interface
-This agent connects to multiple MCP servers to provide comprehensive functionality.
+Multi-MCP Agent for ADK Web Interface - LOCAL OLLAMA VERSION
+This agent connects to multiple MCP servers using local Ollama models.
 """
 
-import os
-from google.adk.agents import LlmAgent
-from google.adk.tools.mcp_tool import MCPToolset
-from google.adk.tools.mcp_tool.mcp_toolset import StdioServerParameters
 
 # Define all your MCP servers
 mcp_tools = []
@@ -104,9 +100,9 @@ mcp_tools.append(
     )
 )
 
-# Define the root agent with all MCP tools
+# Define the root agent with all MCP tools - using LOCAL OLLAMA
 agent = LlmAgent(
-    model='gemini-2.0-flash-lite',  # Lightweight model with good rate limits
+    model='ollama:qwen3:14b',  # Using your local Ollama model
     name='multi_mcp_assistant',
     instruction="""You are a comprehensive AI assistant with access to multiple powerful tools:
 
@@ -128,35 +124,35 @@ Use these tools intelligently to help users with:
 
 Always explain what you're doing and suggest the most appropriate tools for each task.
 """,
-    description="Multi-MCP assistant with comprehensive tooling capabilities",
+    description="Multi-MCP assistant with comprehensive tooling capabilities using local Ollama",
     tools=mcp_tools,
 )
 
-# Alternative single-server testing agents for debugging
+# Alternative single-server testing agents for debugging - all using local Ollama
 sqlite_agent = LlmAgent(
-    model='gemini-2.0-flash-lite',
+    model='ollama:qwen3:4b',  # Lighter model for simpler tasks
     name='sqlite_test_agent',
     instruction="You help users query and manage SQLite databases.",
     tools=[mcp_tools[0]]  # Just SQLite
 )
 
 docker_agent = LlmAgent(
-    model='gemini-2.0-flash-lite',
+    model='ollama:qwen3:4b',
     name='docker_test_agent',
     instruction="You help users manage Docker containers and images.",
     tools=[mcp_tools[1]]  # Just Docker
 )
 
 arxiv_agent = LlmAgent(
-    model='gemini-2.0-flash-lite',
+    model='ollama:qwen3:4b',
     name='arxiv_test_agent',
     instruction="You help users search and analyze academic papers from ArXiv.",
-    tools=[mcp_tools[2]]  # Just ArXiv
+    tools=[mcp_tools[3]]  # Just ArXiv (fixed index)
 )
 
 code_executor_agent = LlmAgent(
-    model='gemini-2.0-flash-lite',
+    model='ollama:qwen3:4b',
     name='code_executor_test_agent',
     instruction="You help users execute and test Python code safely.",
-    tools=[mcp_tools[3]]  # Just Code Executor
+    tools=[mcp_tools[5]]  # Just Code Executor (fixed index)
 )

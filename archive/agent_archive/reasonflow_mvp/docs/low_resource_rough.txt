@@ -1,0 +1,555 @@
+# ReasonFlow MVP - Local MCP Implementation
+
+## Core Architecture using Available MCP Servers
+
+### MVP Scope: "Argument Evolution Engine"
+A simplified system that demonstrates:
+- ✅ Basic argument representation and storage
+- ✅ Simple evolutionary operations (crossover, mutation)
+- ✅ Fallacy detection using LLM analysis
+- ✅ Real-time argument improvement suggestions
+- ✅ Local web interface for testing
+
+### Tech Stack (Using Available Tools)
+- **Database**: SQLite3 for metadata, Neo4j for argument graphs
+- **LLM**: Local models via MCP + your Google tools for backup
+- **Code Execution**: Local REPL for algorithm testing
+- **Interface**: Simple HTML/JS served locally
+
+---
+
+## 1. Data Model (SQLite + Neo4j Hybrid)
+
+### SQLite Schema (metadata.db)
+```sql
+-- Core argument storage
+CREATE TABLE arguments (
+    id TEXT PRIMARY KEY,
+    content TEXT NOT NULL,
+    type TEXT CHECK(type IN ('claim', 'evidence', 'warrant', 'rebuttal')),
+    author TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    confidence REAL DEFAULT 0.5,
+    fitness_score REAL DEFAULT 0.0,
+    generation INTEGER DEFAULT 0
+);
+
+-- Evolutionary tracking
+CREATE TABLE mutations (
+    id TEXT PRIMARY KEY,
+    parent_id TEXT REFERENCES arguments(id),
+    child_id TEXT REFERENCES arguments(id),
+    mutation_type TEXT,
+    improvement_score REAL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Analysis results
+CREATE TABLE fallacy_detections (
+    id TEXT PRIMARY KEY,
+    argument_id TEXT REFERENCES arguments(id),
+    fallacy_type TEXT,
+    confidence REAL,
+    explanation TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Neo4j Relationships (argument_graph.db)
+```cypher
+// Argument nodes
+CREATE (a:Argument {
+    id: "arg_001",
+    content: "Climate change is real",
+    type: "claim",
+    fitness: 0.8
+})
+
+// Relationships
+(:Argument)-[:RESPONDS_TO]->(:Argument)
+(:Argument)-[:SUPPORTS]->(:Argument)
+(:Argument)-[:CONTRADICTS]->(:Argument)
+(:Argument)-[:EVOLVED_FROM]->(:Argument)
+```
+
+---
+
+## 2. Core MVP Components
+
+### A. Argument Parser & Analyzer
+```python
+# reasonflow_core.py
+import sqlite3
+import json
+import random
+from typing import List, Dict, Tuple
+
+class ArgumentNode:
+    def __init__(self, content: str, arg_type: str = "claim", author: str = "user"):
+        self.id = f"arg_{random.randint(1000, 9999)}"
+        self.content = content
+        self.type = arg_type
+        self.author = author
+        self.fitness_score = 0.0
+        self.generation = 0
+        self.parent_ids = []
+
+class ReasonFlowMVP:
+    def __init__(self, db_path: str = "reasonflow.db"):
+        self.db_path = db_path
+        self.init_database()
+    
+    def init_database(self):
+        conn = sqlite3.connect(self.db_path)
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS arguments (
+                id TEXT PRIMARY KEY,
+                content TEXT NOT NULL,
+                type TEXT,
+                author TEXT,
+                fitness_score REAL DEFAULT 0.0,
+                generation INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE TABLE IF NOT EXISTS relationships (
+                id TEXT PRIMARY KEY,
+                source_id TEXT,
+                target_id TEXT,
+                relationship_type TEXT,
+                strength REAL DEFAULT 1.0
+            );
+        """)
+        conn.close()
+    
+    def add_argument(self, content: str, arg_type: str = "claim") -> str:
+        """Add new argument to database"""
+        arg = ArgumentNode(content, arg_type)
+        
+        conn = sqlite3.connect(self.db_path)
+        conn.execute(
+            "INSERT INTO arguments (id, content, type, author, fitness_score, generation) VALUES (?, ?, ?, ?, ?, ?)",
+            (arg.id, arg.content, arg.type, arg.author, arg.fitness_score, arg.generation)
+        )
+        conn.commit()
+        conn.close()
+        
+        return arg.id
+    
+    def get_arguments(self) -> List[Dict]:
+        """Retrieve all arguments"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.execute("SELECT * FROM arguments ORDER BY created_at DESC")
+        arguments = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+        conn.close()
+        return arguments
+```
+
+### B. Simple LLM Integration (Using MCP)
+```python
+# llm_interface.py
+import subprocess
+import json
+
+class MCPLLMInterface:
+    def __init__(self, model_name: str = "gemini"):
+        self.model_name = model_name
+    
+    def analyze_argument(self, content: str) -> Dict:
+        """Analyze argument for logical structure and fallacies"""
+        prompt = f"""
+        Analyze this argument for:
+        1. Logical structure (premises, conclusion)
+        2. Potential logical fallacies
+        3. Strength assessment (0-1)
+        4. Suggestions for improvement
+        
+        Argument: "{content}"
+        
+        Return JSON format:
+        {{
+            "logical_structure": {{"premises": [], "conclusion": ""}},
+            "fallacies": [],
+            "strength": 0.0,
+            "suggestions": []
+        }}
+        """
+        
+        # Use your MCP Google tools here
+        result = self._call_llm(prompt)
+        try:
+            return json.loads(result)
+        except:
+            return {"error": "Failed to parse LLM response"}
+    
+    def suggest_mutation(self, content: str, weakness: str) -> str:
+        """Suggest improvement based on identified weakness"""
+        prompt = f"""
+        Original argument: "{content}"
+        Identified weakness: "{weakness}"
+        
+        Suggest a specific improvement that addresses this weakness while preserving the core claim.
+        Return only the improved argument text.
+        """
+        return self._call_llm(prompt)
+    
+    def suggest_crossover(self, arg1: str, arg2: str) -> str:
+        """Suggest combination of two arguments"""
+        prompt = f"""
+        Argument 1: "{arg1}"
+        Argument 2: "{arg2}"
+        
+        Create a new argument that combines the strengths of both.
+        Return only the new argument text.
+        """
+        return self._call_llm(prompt)
+    
+    def _call_llm(self, prompt: str) -> str:
+        # This would use your MCP interface
+        # For now, placeholder - you'd integrate with your actual MCP setup
+        return "LLM response placeholder"
+```
+
+### C. Simple Evolutionary Engine
+```python
+# evolution_engine.py
+import random
+from typing import List, Tuple
+
+class EvolutionEngine:
+    def __init__(self, reasonflow: ReasonFlowMVP, llm: MCPLLMInterface):
+        self.reasonflow = reasonflow
+        self.llm = llm
+    
+    def evolve_argument(self, argument_id: str) -> str:
+        """Apply random evolutionary operation to argument"""
+        operations = ['mutate', 'improve_based_on_analysis']
+        operation = random.choice(operations)
+        
+        # Get original argument
+        conn = sqlite3.connect(self.reasonflow.db_path)
+        cursor = conn.execute("SELECT * FROM arguments WHERE id = ?", (argument_id,))
+        arg_data = cursor.fetchone()
+        conn.close()
+        
+        if not arg_data:
+            return None
+        
+        original_content = arg_data[1]  # content column
+        
+        if operation == 'mutate':
+            return self._mutate_argument(original_content, argument_id)
+        elif operation == 'improve_based_on_analysis':
+            return self._improve_argument(original_content, argument_id)
+    
+    def _mutate_argument(self, content: str, parent_id: str) -> str:
+        """Generate mutation using LLM"""
+        analysis = self.llm.analyze_argument(content)
+        
+        if analysis.get('suggestions'):
+            weakness = random.choice(analysis['suggestions'])
+            improved_content = self.llm.suggest_mutation(content, weakness)
+            
+            # Save as new argument
+            new_id = self.reasonflow.add_argument(improved_content, "claim")
+            
+            # Record relationship
+            self._record_evolution(parent_id, new_id, "mutation")
+            
+            return new_id
+        
+        return parent_id
+    
+    def _improve_argument(self, content: str, parent_id: str) -> str:
+        """Improve argument based on analysis"""
+        analysis = self.llm.analyze_argument(content)
+        
+        # Simple improvement: address identified fallacies
+        if analysis.get('fallacies'):
+            fallacy = analysis['fallacies'][0]
+            improved_content = self.llm.suggest_mutation(content, f"Remove {fallacy} fallacy")
+            
+            new_id = self.reasonflow.add_argument(improved_content, "claim")
+            self._record_evolution(parent_id, new_id, "improvement")
+            
+            return new_id
+        
+        return parent_id
+    
+    def _record_evolution(self, parent_id: str, child_id: str, evolution_type: str):
+        """Record evolutionary relationship"""
+        conn = sqlite3.connect(self.reasonflow.db_path)
+        rel_id = f"rel_{random.randint(1000, 9999)}"
+        conn.execute(
+            "INSERT INTO relationships (id, source_id, target_id, relationship_type) VALUES (?, ?, ?, ?)",
+            (rel_id, parent_id, child_id, evolution_type)
+        )
+        conn.commit()
+        conn.close()
+```
+
+---
+
+## 3. Simple Web Interface
+
+### HTML Interface (index.html)
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ReasonFlow MVP</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .argument { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .argument.evolved { border-color: #4CAF50; background-color: #f9fff9; }
+        .fitness-score { float: right; font-weight: bold; color: #666; }
+        .evolution-controls { margin: 10px 0; }
+        button { margin: 5px; padding: 8px 15px; }
+        .analysis { background-color: #f0f0f0; padding: 10px; margin-top: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>ReasonFlow MVP - Argument Evolution Engine</h1>
+    
+    <div id="input-section">
+        <h3>Add New Argument</h3>
+        <textarea id="argument-input" placeholder="Enter your argument here..." rows="3" style="width: 100%;"></textarea>
+        <br>
+        <button onclick="addArgument()">Add Argument</button>
+        <button onclick="analyzeAll()">Analyze All Arguments</button>
+    </div>
+    
+    <div id="arguments-section">
+        <h3>Arguments & Evolution</h3>
+        <div id="arguments-list"></div>
+    </div>
+
+    <script src="reasonflow.js"></script>
+</body>
+</html>
+```
+
+### JavaScript Frontend (reasonflow.js)
+```javascript
+class ReasonFlowUI {
+    constructor() {
+        this.arguments = [];
+        this.loadArguments();
+    }
+    
+    async loadArguments() {
+        try {
+            const response = await fetch('/api/arguments');
+            this.arguments = await response.json();
+            this.renderArguments();
+        } catch (error) {
+            console.error('Error loading arguments:', error);
+        }
+    }
+    
+    async addArgument() {
+        const content = document.getElementById('argument-input').value;
+        if (!content.trim()) return;
+        
+        try {
+            const response = await fetch('/api/arguments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: content })
+            });
+            
+            if (response.ok) {
+                document.getElementById('argument-input').value = '';
+                this.loadArguments();
+            }
+        } catch (error) {
+            console.error('Error adding argument:', error);
+        }
+    }
+    
+    async evolveArgument(argumentId) {
+        try {
+            const response = await fetch(`/api/evolve/${argumentId}`, { method: 'POST' });
+            if (response.ok) {
+                this.loadArguments();
+            }
+        } catch (error) {
+            console.error('Error evolving argument:', error);
+        }
+    }
+    
+    async analyzeArgument(argumentId) {
+        try {
+            const response = await fetch(`/api/analyze/${argumentId}`);
+            const analysis = await response.json();
+            
+            // Display analysis in the UI
+            const analysisDiv = document.getElementById(`analysis-${argumentId}`);
+            if (analysisDiv) {
+                analysisDiv.innerHTML = `
+                    <strong>Analysis:</strong><br>
+                    Strength: ${analysis.strength || 'Unknown'}<br>
+                    Fallacies: ${analysis.fallacies ? analysis.fallacies.join(', ') : 'None detected'}<br>
+                    Suggestions: ${analysis.suggestions ? analysis.suggestions.join(', ') : 'None'}
+                `;
+                analysisDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error analyzing argument:', error);
+        }
+    }
+    
+    renderArguments() {
+        const container = document.getElementById('arguments-list');
+        container.innerHTML = '';
+        
+        this.arguments.forEach(arg => {
+            const div = document.createElement('div');
+            div.className = `argument ${arg.generation > 0 ? 'evolved' : ''}`;
+            
+            div.innerHTML = `
+                <div class="fitness-score">Fitness: ${arg.fitness_score.toFixed(2)}</div>
+                <div><strong>Content:</strong> ${arg.content}</div>
+                <div><strong>Type:</strong> ${arg.type} | <strong>Generation:</strong> ${arg.generation}</div>
+                <div class="evolution-controls">
+                    <button onclick="reasonFlowUI.evolveArgument('${arg.id}')">Evolve</button>
+                    <button onclick="reasonFlowUI.analyzeArgument('${arg.id}')">Analyze</button>
+                </div>
+                <div id="analysis-${arg.id}" class="analysis" style="display: none;"></div>
+            `;
+            
+            container.appendChild(div);
+        });
+    }
+}
+
+// Global instance
+const reasonFlowUI = new ReasonFlowUI();
+
+// Global functions for button clicks
+function addArgument() {
+    reasonFlowUI.addArgument();
+}
+
+function analyzeAll() {
+    reasonFlowUI.arguments.forEach(arg => {
+        reasonFlowUI.analyzeArgument(arg.id);
+    });
+}
+```
+
+---
+
+## 4. Simple Flask Server (server.py)
+```python
+from flask import Flask, request, jsonify, render_template_string
+import sqlite3
+from reasonflow_core import ReasonFlowMVP
+from llm_interface import MCPLLMInterface
+from evolution_engine import EvolutionEngine
+
+app = Flask(__name__)
+
+# Initialize components
+reasonflow = ReasonFlowMVP()
+llm_interface = MCPLLMInterface()
+evolution_engine = EvolutionEngine(reasonflow, llm_interface)
+
+@app.route('/')
+def index():
+    with open('index.html', 'r') as f:
+        return f.read()
+
+@app.route('/reasonflow.js')
+def js():
+    with open('reasonflow.js', 'r') as f:
+        return f.read(), 200, {'Content-Type': 'application/javascript'}
+
+@app.route('/api/arguments', methods=['GET'])
+def get_arguments():
+    arguments = reasonflow.get_arguments()
+    return jsonify(arguments)
+
+@app.route('/api/arguments', methods=['POST'])
+def add_argument():
+    data = request.json
+    content = data.get('content')
+    if content:
+        arg_id = reasonflow.add_argument(content)
+        return jsonify({'id': arg_id, 'status': 'success'})
+    return jsonify({'error': 'No content provided'}), 400
+
+@app.route('/api/evolve/<argument_id>', methods=['POST'])
+def evolve_argument(argument_id):
+    new_id = evolution_engine.evolve_argument(argument_id)
+    if new_id:
+        return jsonify({'new_id': new_id, 'status': 'success'})
+    return jsonify({'error': 'Evolution failed'}), 400
+
+@app.route('/api/analyze/<argument_id>', methods=['GET'])
+def analyze_argument(argument_id):
+    # Get argument content
+    conn = sqlite3.connect(reasonflow.db_path)
+    cursor = conn.execute("SELECT content FROM arguments WHERE id = ?", (argument_id,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        content = result[0]
+        analysis = llm_interface.analyze_argument(content)
+        return jsonify(analysis)
+    
+    return jsonify({'error': 'Argument not found'}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8080)
+```
+
+---
+
+## 5. Quick Setup & Demo
+
+### Installation Script (setup.sh)
+```bash
+#!/bin/bash
+echo "Setting up ReasonFlow MVP..."
+
+# Create project directory
+mkdir -p reasonflow_mvp
+cd reasonflow_mvp
+
+# Install Python dependencies
+pip install flask sqlite3
+
+# Create database
+python -c "
+from reasonflow_core import ReasonFlowMVP
+rf = ReasonFlowMVP()
+print('Database initialized!')
+"
+
+echo "Setup complete! Run: python server.py"
+```
+
+### Demo Workflow
+1. **Start Server**: `python server.py`
+2. **Open Browser**: `http://localhost:8080`
+3. **Add Arguments**: Enter test arguments like:
+   - "Climate change is caused by human activity"
+   - "Vaccines are safe and effective" 
+   - "Democracy is the best form of government"
+4. **Analyze**: Click "Analyze" to detect fallacies/strength
+5. **Evolve**: Click "Evolve" to generate improved versions
+6. **Compare**: See how arguments improve through generations
+
+---
+
+## Next Steps for MVP Enhancement
+
+1. **Integrate with Your MCP Setup**: Replace placeholder LLM calls with your actual MCP Google tools
+2. **Add Neo4j Visualization**: Simple graph view of argument relationships
+3. **Implement Basic Crossover**: Combine two arguments into hybrid
+4. **Add Fallacy Detection**: Use LLM to identify specific logical fallacies
+5. **Simple Scoring System**: Track improvement over generations
+
+This MVP demonstrates the core ReasonFlow concept with minimal infrastructure while leveraging your existing MCP tools!

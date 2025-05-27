@@ -139,7 +139,7 @@ agent = LlmAgent(
 
 1. **SQLite Database**: Query and manage algorithm platform database
 2. **Docker**: Manage containers, images, and deployments
-3. **Desktop Commander**: Control desktop applications and system operations
+3. **Desktop Commander**: Utilize CLI and file system operations
 4. **Chroma Vector DB**: Store, search, and retrieve vectorized data and documents
 5. **ArXiv Research**: Search, download, and analyze academic papers
 6. **Package Versions**: Check latest versions of software packages across ecosystems
