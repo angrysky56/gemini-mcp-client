@@ -15,10 +15,10 @@ from typing import Any
 
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
+from google.genai import models, types
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from openai import models
+from pydantic import AnyUrl
 
 client = genai.Client(
     api_key='GEMINI_API_KEY',
@@ -30,7 +30,6 @@ GEMINI_PACKAGE: str | None = None
 
 # Try gemini-tool-agent first
 try:
-    import agents.full_mcp_agent.agent
     GEMINI_AVAILABLE = True
     GEMINI_PACKAGE = "full_mcp_agent"
 except ImportError:
@@ -85,6 +84,7 @@ class Geminiagent:
 
         if GEMINI_PACKAGE == "full_mcp_agent":
                 from agents.full_mcp_agent import agent
+                self.agent = agent
         elif GEMINI_PACKAGE == "google-genai":
             self.client = new_genai.Client(api_key=api_key)
         else:
@@ -647,7 +647,7 @@ class MCPClient:
             self.logger.error(f"Failed to call tool {tool_name}: {e}")
             raise ToolExecutionError(f"Tool call failed: {e}") from e
 
-    async def read_resource(self, uri: str) -> tuple[str, str | None]:
+    async def read_resource(self, uri: AnyUrl) -> tuple[str, str | None]:
         """
         Read a resource from the server.
 
@@ -669,7 +669,6 @@ class MCPClient:
         except Exception as e:
             self.logger.error(f"Failed to read resource {uri}: {e}")
             raise MCPClientError(f"Resource read failed: {e}") from e
-
 
     async def close(self) -> None:
         """Close the client and clean up resources."""
