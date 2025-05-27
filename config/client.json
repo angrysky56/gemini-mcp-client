@@ -1,5 +1,5 @@
 {
-  "default_model": "gemini-2.0-flash-lite",
+  "default_model": "gemini-2.0-flash-lite-001",
   "log_level": "INFO",
   "api_key": null,
   "connection_timeout": 30.0,

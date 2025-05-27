@@ -1,7 +1,7 @@
 {
   "gemini_models": [
     {
-      "name": "gemini-2.0-flash-lite",
+      "name": "gemini-2.0-flash-lite-001",
       "description": "30 rpm 500 rpd"
     },
     {

@@ -4,9 +4,10 @@ Full MCP Agent - Dynamically loads all enabled MCP servers from config.
 Properly integrated with Gemini client for optimal performance.
 """
 
-import os
 import json
+import os
 from pathlib import Path
+
 from google.adk.agents import LlmAgent
 from google.adk.tools.mcp_tool import MCPToolset
 from google.adk.tools.mcp_tool.mcp_toolset import StdioServerParameters
@@ -17,7 +18,7 @@ from google.genai import types
 
 # Model selection - override with GEMINI_MODEL env var
 # Using models from your provided list for best performance
-DEFAULT_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-lite')  # 30 rpm, 1500 rpd
+DEFAULT_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash-lite-001')  # 30 rpm, 1500 rpd
 
 # Agent configuration
 AGENT_NAME = os.getenv('AGENT_NAME', 'full_mcp_agent')

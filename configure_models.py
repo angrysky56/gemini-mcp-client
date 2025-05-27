@@ -4,38 +4,39 @@ ADK Agent Model Configuration Utility
 Allows changing the default model for all ADK agents.
 """
 
-import json
 import argparse
+import json
 from pathlib import Path
+
 
 def load_config():
     """Load the current agent configuration."""
-    config_path = Path(__file__).parent / "agents" / "agent_config.json"
+    config_path = Path(__file__).parent / "config" / "models.json"
     if config_path.exists():
         with open(config_path) as f:
             return json.load(f)
     else:
         return {
-            "default_model": "gemini-2.0-flash-lite",
+            "default_model": "gemini-2.0-flash-lite-001",
             "available_models": [
-                "gemini-2.0-flash-lite",
+                "gemini-2.0-flash-lite-001",
                 "gemini-2.5-flash-preview-05-20",
                 "gemini-2.0-flash-preview-image-generation",
                 "gemini-2.5-pro-preview-05-06"
-                # "gemma-3n-e4b-it"
+                "gemma-3n-e4b-it"
             ],
             "model_descriptions": {
                 "gemini-2.0-flash-lite": "30 rpm 1500 req/day (free)",
                 "gemini-2.5-flash-preview-05-20": "10 rpm 500 req/day (free)",
                 "gemini-2.0-flash-preview-image-generation": "15 rpm 1500 req/day (free) fast image model",
-                "gemini-2.5-pro-preview-05-06": "More powerful model for complex tasks 5 rpm 25 req/day (free)"
-                # "gemma-3n-e4b-it": "Lightweight model 30 rpm 14400 req/day (free)", not found?
+                "gemini-2.5-pro-preview-05-06": "More powerful model for complex tasks 5 rpm 25 req/day (free)",
+                "gemma-3n-e4b-it": "Lightweight model 30 rpm 14400 req/day (free)"
             }
         }
 
 def save_config(config):
     """Save the agent configuration."""
-    config_path = Path(__file__).parent / "agents" / "agent_config.json"
+    config_path = Path(__file__).parent / "config" / "models.json"
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
 
